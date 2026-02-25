@@ -37,7 +37,7 @@ export function ModernTeamSection() {
   const getPhotoUrl = (photo: string) => {
     if (!photo) return 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80';
     if (photo.startsWith('data:') || photo.startsWith('http')) return photo;
-    return `${API_BASE_URL}${photo.startsWith('/') ? '' : '/'}${photo}`;
+    return `${API_BASE_URL.replace(/\/$/, '')}/${photo.replace(/^\//, '')}`;
   };
 
   if (loading) {

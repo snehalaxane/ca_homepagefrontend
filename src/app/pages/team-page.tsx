@@ -4,6 +4,13 @@ import { ChevronRight, ChevronLeft, Linkedin, Twitter, Facebook, Mail, Phone, Ma
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
+// Helper to resolve image URLs reliably
+const resolveImageUrl = (url: string | undefined) => {
+  if (!url) return '';
+  if (url.startsWith('http') || url.startsWith('data:')) return url;
+  return `${API_BASE_URL.replace(/\/$/, '')}/${url.replace(/^\//, '')}`;
+};
+
 interface Partner {
   _id: string;
   name: string;
@@ -186,7 +193,7 @@ export function TeamPage() {
                           >
                             {member.photo ? (
                               <img
-                                src={member.photo.startsWith('http') || member.photo.startsWith('data:') ? member.photo : `${API_BASE_URL}${member.photo}`}
+                                src={resolveImageUrl(member.photo)}
                                 alt={member.name}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                               />
@@ -310,7 +317,7 @@ export function TeamPage() {
                     <div className="lg:col-span-2 relative overflow-hidden bg-gradient-to-br from-[#022683]/5 to-blue-50">
                       <div className="aspect-[4/5] lg:aspect-auto lg:h-full relative">
                         <img
-                          src={currentPartner.photo.startsWith('http') || currentPartner.photo.startsWith('data:') ? currentPartner.photo : `${API_BASE_URL}${currentPartner.photo}`}
+                          src={resolveImageUrl(currentPartner.photo)}
                           alt={currentPartner.name}
                           className="w-full h-full object-cover object-top"
                         />

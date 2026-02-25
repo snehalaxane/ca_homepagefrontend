@@ -62,30 +62,22 @@ export function HistoryPage() {
   useEffect(() => {
     if (timeline.length === 0) return;
 
-    // Set initial active ID to the bottom item
-    if (!activeId) {
-      setActiveId(timeline[timeline.length - 1]._id);
-    }
+    let index = timeline.length - 1; // Start from bottom
+
+    setActiveId(timeline[index]._id);
 
     const interval = setInterval(() => {
-      setTimeline((prev) => {
-        const next = [...prev];
-        const currentIndex = next.findIndex((item) => item._id === activeId);
+      index--;
 
-        if (currentIndex > 0) {
-          // Swap with upper neighbor (climbing up effect)
-          [next[currentIndex], next[currentIndex - 1]] = [next[currentIndex - 1], next[currentIndex]];
-        } else {
-          // Current climber hit the top! 
-          // Stop moving it and pick the NEW bottom card to climb next
-          setActiveId(next[next.length - 1]._id);
-        }
-        return next;
-      });
+      if (index < 0) {
+        index = timeline.length - 1; // Reset to bottom
+      }
+
+      setActiveId(timeline[index]._id);
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [timeline.length, activeId]);
+  }, [timeline]);
 
   // Delayed highlight to match line travel duration
   useEffect(() => {
@@ -244,9 +236,10 @@ export function HistoryPage() {
                 {/* Animated Progress Line (Traveling Blue Line - Bottom to Top) */}
                 {(() => {
                   const activeIndex = timeline.findIndex(item => item._id === activeId);
-                  const progress = timeline.length > 1
-                    ? ((timeline.length - 1 - activeIndex) / (timeline.length - 1)) * 100
-                    : 100;
+                  const progress =
+                    timeline.length > 1
+                      ? ((timeline.length - 1 - activeIndex) / (timeline.length - 1)) * 100
+                      : 100;
 
                   return (
                     <motion.div
@@ -333,8 +326,8 @@ export function HistoryPage() {
                               <Calendar className="h-4 w-4" />
                               <span
                                 className={`text-sm px-3 py-1 rounded-full transition-all duration-300 ${item._id === highlightedId
-                                    ? "bg-white text-[#022683]"
-                                    : "bg-[#022683]/10 text-[#022683]"
+                                  ? "bg-white text-[#022683]"
+                                  : "bg-[#022683]/10 text-[#022683]"
                                   }`}
                               >
                                 {item.year}

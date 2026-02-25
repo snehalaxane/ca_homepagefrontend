@@ -8,6 +8,12 @@ import { Button } from '../components/ui/button';
 // API Base URL
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
+const resolveImageUrl = (url: string | undefined) => {
+  if (!url) return '';
+  if (url.startsWith('http') || url.startsWith('data:')) return url;
+  return `${API_BASE_URL.replace(/\/$/, '')}/${url.replace(/^\//, '')}`;
+};
+
 interface BlogIntro {
   title: string;
   subtitle: string;
@@ -212,7 +218,7 @@ export function BlogPage() {
                       {selectedPost.featuredImage && (
                         <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-2xl border border-gray-100 bg-[#f5f6fa] flex items-center justify-center">
                           <img
-                            src={selectedPost.featuredImage.startsWith('http') ? selectedPost.featuredImage : `${API_BASE_URL}/${selectedPost.featuredImage}`}
+                            src={resolveImageUrl(selectedPost.featuredImage)}
                             alt={selectedPost.title}
                             className="object-contain max-h-[400px] max-w-full mx-auto"
                           />
@@ -307,7 +313,7 @@ export function BlogPage() {
                           {post.featuredImage && (
                             <div className="relative h-64 overflow-hidden bg-[#f5f6fa] flex items-center justify-center">
                               <img
-                                src={post.featuredImage.startsWith('http') ? post.featuredImage : `${API_BASE_URL}/${post.featuredImage}`}
+                                src={resolveImageUrl(post.featuredImage)}
                                 alt={post.title}
                                 className="object-contain max-h-64 max-w-full mx-auto transition-transform duration-500 group-hover:scale-105"
                               />
