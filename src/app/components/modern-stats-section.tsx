@@ -1,9 +1,285 @@
-import { motion } from "motion/react";
+// import { motion } from "motion/react";
+// import { useState, useEffect, useCallback } from "react";
+
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// // Layout constants (px)
+// const CONTAINER_W = 1000;  // Wider to allow side cards to breath
+// const CONTAINER_H = 450;
+// const CARD_W = 600;        // Focus card width
+// const CARD_H = 350;
+// const GAP = 120;         // how many px of prev/next card shows on each side
+
+// // Left-edge X positions for each role
+// // const ACTIVE_X = (CONTAINER_W - CARD_W) / 2; // = 80 — centered
+// // const PREV_X = PEEK - CARD_W;                  // = -640 — only right PEEK px visible
+// // const NEXT_X = CONTAINER_W - PEEK;             // = 800 — only left PEEK px visible
+
+// interface StatItem {
+//   _id: string;
+//   icon: string;
+// }
+
+// interface AboutResponse {
+//   _id: string;
+//   enabled: boolean;
+//   title: string;
+//   description: string;
+//   stats: StatItem[];
+// }
+
+// export function ModernStatsSection() {
+//   const [statsData, setStatsData] = useState<AboutResponse | null>(null);
+//   const [activeSlide, setActiveSlide] = useState(0);
+//   const [progress, setProgress] = useState(0);
+
+//   useEffect(() => {
+//     const fetchStats = async () => {
+//       try {
+//         const res = await fetch(`${API_BASE_URL}/api/about`);
+//         const data: AboutResponse = await res.json();
+//         setStatsData(data);
+//       } catch (error) {
+//         console.error("Failed to fetch stats section", error);
+//       }
+//     };
+//     fetchStats();
+//   }, []);
+
+//   const validStats = statsData?.stats.filter((s) => s.icon?.startsWith("/uploads")) ?? [];
+//   const total = validStats.length;
+
+//   const goToSlide = useCallback((index: number) => {
+//     setActiveSlide(index);
+//     setProgress(0);
+//   }, []);
+
+//   const goNext = useCallback(() => goToSlide((activeSlide + 1) % total), [activeSlide, total, goToSlide]);
+//   const goPrev = useCallback(() => goToSlide((activeSlide - 1 + total) % total), [activeSlide, total, goToSlide]);
+
+//   // Auto-advance with progress tracking
+//   useEffect(() => {
+//     if (total < 2) return;
+//     const INTERVAL = 4000;
+//     const TICK = 50;
+//     let elapsed = 0;
+
+//     const timer = setInterval(() => {
+//       elapsed += TICK;
+//       setProgress(Math.min((elapsed / INTERVAL) * 100, 100));
+//       if (elapsed >= INTERVAL) {
+//         elapsed = 0;
+//         setActiveSlide((prev) => (prev + 1) % total);
+//         setProgress(0);
+//       }
+//     }, TICK);
+
+//     return () => clearInterval(timer);
+//   }, [total]);
+
+//   if (!statsData || !statsData.enabled || total === 0) return null;
+
+//   return (
+//     <section className="py-16 bg-gradient-to-br from-[#F0F4FF] via-[#FFFFFF] to-[#E8F0FE] relative overflow-hidden">
+
+//       {/* Animated Background Blobs */}
+//       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+//         <motion.div
+//           animate={{ scale: [1, 1.25, 1], opacity: [0.07, 0.15, 0.07] }}
+//           transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+//           className="absolute -top-1/4 -left-1/4 w-3/4 h-3/4 bg-[var(--primary)] rounded-full blur-[160px]"
+//         />
+//         <motion.div
+//           animate={{ scale: [1, 1.3, 1], opacity: [0.05, 0.12, 0.05] }}
+//           transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+//           className="absolute -bottom-1/4 -right-1/4 w-3/4 h-3/4 bg-[var(--secondary)] rounded-full blur-[160px]"
+//         />
+//       </div>
+
+//       <div className="relative z-10">
+
+//         {/* Header */}
+//         <div className="container mx-auto px-6">
+//           <motion.div
+//             initial={{ opacity: 0, y: 30 }}
+//             whileInView={{ opacity: 1, y: 0 }}
+//             viewport={{ once: true }}
+//             transition={{ duration: 0.9, ease: "easeOut" }}
+//             className="text-center mb-12"
+//           >
+//             <motion.span
+//               initial={{ opacity: 0, scale: 0.85 }}
+//               whileInView={{ opacity: 1, scale: 1 }}
+//               viewport={{ once: true }}
+//               transition={{ duration: 0.7 }}
+//               className="inline-block px-6 py-2 rounded-full bg-white/60 backdrop-blur-md text-[var(--secondary)] text-sm font-bold tracking-[0.25em] uppercase mb-6 border border-white/70 shadow-md"
+//             >
+//               About Us
+//             </motion.span>
+
+//             <h2 className="text-4xl lg:text-5xl font-bold mb-4">
+//               {statsData.title ? (
+//                 <>
+//                   <span className="text-[#111111]">{statsData.title.split(' ').slice(0, -1).join(' ')}</span>
+//                   <br />
+//                   <span className="bg-gradient-to-r from-[var(--secondary)] to-[var(--primary)] bg-clip-text text-transparent">
+//                     {statsData.title.split(' ').slice(-1)}
+//                   </span>
+//                 </>
+//               ) : (
+//                 <>
+//                   <span className="text-[#111111]">About</span>
+//                   <br />
+//                   <span className="bg-gradient-to-r from-[var(--secondary)] to-[var(--primary)] bg-clip-text text-transparent">Us</span>
+//                 </>
+//               )}
+//             </h2>
+
+//             <p className="text-lg text-gray-500 max-w-3xl mx-auto leading-relaxed">
+//               {statsData.description}
+//             </p>
+//           </motion.div>
+//         </div>
+
+//         {/* Visible-Edge Carousel */}
+//         <div className="flex justify-center">
+//           <div
+//             className="relative overflow-hidden"
+//             style={{ width: CONTAINER_W, maxWidth: "100%", height: CONTAINER_H }}
+//           >
+//             {validStats.map((stat, i) => {
+//               const diff = (i - activeSlide + total) % total;
+//               const isActive = diff === 0;
+//               const isNext = diff === 1;
+//               const isPrev = diff === total - 1;
+//               const isVisible = isActive || isNext || isPrev;
+
+//               // Compute target position
+//               let targetX = ACTIVE_X;
+//               if (isPrev) targetX = PREV_X;
+//               else if (isNext) targetX = NEXT_X;
+//               else if (diff > 1 && diff <= Math.floor(total / 2)) targetX = CONTAINER_W + CARD_W; // far right
+//               else targetX = -CARD_W * 2; // far left
+
+//               const targetScale = isActive ? 1 : 0.88;
+//               const targetOpacity = isActive ? 1 : isVisible ? 0.55 : 0;
+//               const targetBlur = isActive ? 0 : 5;
+//               const targetZ = isActive ? 10 : 5;
+
+//               return (
+//                 <motion.div
+//                   key={stat._id}
+//                   className="absolute top-1/2"
+//                   style={{ width: CARD_W, height: CARD_H }}
+//                   animate={{
+//                     x: targetX,
+//                     y: -CARD_H / 2,
+//                     scale: targetScale,
+//                     opacity: targetOpacity,
+//                     filter: `blur(${targetBlur}px)`,
+//                     zIndex: targetZ,
+//                   }}
+//                   transition={{
+//                     x: { type: "spring", stiffness: 300, damping: 30 },
+//                     scale: { duration: 0.4, ease: "easeInOut" },
+//                     opacity: { duration: 0.35, ease: "easeInOut" },
+//                     filter: { duration: 0.4, ease: "easeInOut" },
+//                   }}
+//                   onClick={() => {
+//                     if (isNext) goNext();
+//                     else if (isPrev) goPrev();
+//                   }}
+//                   style={{
+//                     width: CARD_W,
+//                     height: CARD_H,
+//                     cursor: isActive ? "default" : "pointer",
+//                   }}
+//                 >
+//                   {/* Image — no card background, raw image */}
+//                   <img
+//                     src={`${API_BASE_URL}${stat.icon}`}
+//                     alt={`Slide ${i + 1}`}
+//                     draggable={false}
+//                     className="w-full h-full object-contain select-none rounded-xl"
+//                     style={{
+//                       filter: isActive
+//                         ? "drop-shadow(0 20px 50px rgba(0,0,0,0.13))"
+//                         : "none",
+//                     }}
+//                   />
+//                 </motion.div>
+//               );
+//             })}
+
+//             {/* Left click zone for prev */}
+//             <button
+//               onClick={goPrev}
+//               className="absolute left-0 top-0 h-full z-20 flex items-center pl-2 pr-4 group"
+//               style={{ width: PEEK + 24 }}
+//               aria-label="Previous"
+//             >
+//               <div className="w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+//                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--secondary)]">
+//                   <polyline points="15 18 9 12 15 6" />
+//                 </svg>
+//               </div>
+//             </button>
+
+//             {/* Right click zone for next */}
+//             <button
+//               onClick={goNext}
+//               className="absolute right-0 top-0 h-full z-20 flex items-center pr-2 pl-4 group"
+//               style={{ width: PEEK + 24 }}
+//               aria-label="Next"
+//             >
+//               <div className="w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-auto">
+//                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--secondary)]">
+//                   <polyline points="9 18 15 12 9 6" />
+//                 </svg>
+//               </div>
+//             </button>
+//           </div>
+//         </div>
+
+//         {/* Navigation Dots */}
+//         <div className="flex justify-center items-center gap-3 mt-8">
+//           {validStats.map((_, index) => (
+//             <button
+//               key={index}
+//               onClick={() => goToSlide(index)}
+//               aria-label={`Go to slide ${index + 1}`}
+//             >
+//               <motion.div
+//                 animate={{ width: activeSlide === index ? 36 : 8 }}
+//                 transition={{ duration: 0.35, ease: "easeInOut" }}
+//                 className="h-[5px] rounded-full bg-[var(--secondary)]/15 overflow-hidden relative"
+//               >
+//                 {activeSlide === index && (
+//                   <motion.div
+//                     className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[var(--secondary)] to-[var(--primary)]"
+//                     style={{ width: `${progress}%` }}
+//                   />
+//                 )}
+//               </motion.div>
+//             </button>
+//           ))}
+//         </div>
+
+//       </div>
+//     </section>
+//   );
+// }
+
+
+import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect, useCallback } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const STRIPS = 5;
+// Layout constants for the "Depth" effect
+const CARD_W = 720;
+const CARD_H = 375;
+const GAP = 180; // Increased gap for better stacked visibility
 
 interface StatItem {
   _id: string;
@@ -18,52 +294,10 @@ interface AboutResponse {
   stats: StatItem[];
 }
 
-// Strip-by-strip reveal — each horizontal slice flies in from alternating sides
-function StripReveal({ src, alt }: { src: string; alt: string }) {
-  return (
-    <div className="absolute inset-0">
-      {Array.from({ length: STRIPS }).map((_, i) => {
-        const topPct = i === 0 ? 0 : (i * 100) / STRIPS - 0.8;
-        const bottomPct = i === STRIPS - 1 ? 0 : 100 - ((i + 1) * 100) / STRIPS - 0.8;
-        const fromLeft = i % 2 === 0;
-
-        return (
-          <motion.div
-            key={i}
-            className="absolute inset-0"
-            style={{
-              clipPath: `inset(${topPct}% 0 ${bottomPct}% 0)`,
-            }}
-            initial={{ x: fromLeft ? "-105%" : "105%", opacity: 0.6 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{
-              delay: i * 0.055,
-              duration: 0.42,
-              ease: [0.25, 0.46, 0.45, 0.94],
-            }}
-          >
-            {/* Full image repeated per strip — clip-path reveals only its slice */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <img
-                src={src}
-                alt={alt}
-                draggable={false}
-                className="max-w-[90%] max-h-[90%] w-auto h-auto object-contain select-none"
-                style={{ filter: "drop-shadow(0 20px 60px rgba(0,0,0,0.12))" }}
-              />
-            </div>
-          </motion.div>
-        );
-      })}
-    </div>
-  );
-}
-
+// 1. CHANGED TO NAMED EXPORT to match your HomePage import
 export function ModernStatsSection() {
   const [statsData, setStatsData] = useState<AboutResponse | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
-  const [prevSlide, setPrevSlide] = useState<number | null>(null);
-  const [revealKey, setRevealKey] = useState(0); // remount StripReveal on each change
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -80,22 +314,17 @@ export function ModernStatsSection() {
   }, []);
 
   const validStats = statsData?.stats.filter((s) => s.icon?.startsWith("/uploads")) ?? [];
+  const total = validStats.length;
 
   const goToSlide = useCallback((index: number) => {
-    setActiveSlide((prev) => {
-      setPrevSlide(prev);
-      return index;
-    });
-    setRevealKey((k) => k + 1);
+    setActiveSlide(index);
     setProgress(0);
-    // Clear prevSlide after animation
-    setTimeout(() => setPrevSlide(null), 700);
   }, []);
 
-  // Auto-advance
+  // Auto-advance logic
   useEffect(() => {
-    if (validStats.length < 2) return;
-    const INTERVAL = 4200;
+    if (total < 2) return;
+    const INTERVAL = 5000;
     const TICK = 50;
     let elapsed = 0;
 
@@ -104,176 +333,132 @@ export function ModernStatsSection() {
       setProgress(Math.min((elapsed / INTERVAL) * 100, 100));
       if (elapsed >= INTERVAL) {
         elapsed = 0;
-        setActiveSlide((prev) => {
-          const next = (prev + 1) % validStats.length;
-          setPrevSlide(prev);
-          setRevealKey((k) => k + 1);
-          setTimeout(() => setPrevSlide(null), 700);
-          return next;
-        });
+        setActiveSlide((prev) => (prev + 1) % total);
         setProgress(0);
       }
     }, TICK);
 
     return () => clearInterval(timer);
-  }, [validStats.length]);
+  }, [total, activeSlide]);
 
-  if (!statsData || !statsData.enabled || validStats.length === 0) return null;
-
-  const current = validStats[activeSlide];
-  const previous = prevSlide !== null ? validStats[prevSlide] : null;
+  if (!statsData || !statsData.enabled || total === 0) return null;
 
   return (
-    <section className="py-16 bg-gradient-to-br from-[#F0F4FF] via-[#FFFFFF] to-[#E8F0FE] relative overflow-hidden">
+    <section className="py-24 bg-[#ffff] text-white overflow-hidden relative min-h-[800px]">
 
-      {/* Animated Background Blobs */}
+      {/* Background Ambient Glows */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          animate={{ scale: [1, 1.25, 1], opacity: [0.07, 0.15, 0.07] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-1/4 -left-1/4 w-3/4 h-3/4 bg-[var(--primary)] rounded-full blur-[160px]"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.2, 0.15] }}
+          transition={{ duration: 10, repeat: Infinity }}
+          className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-blue-600 rounded-full blur-[120px]"
         />
         <motion.div
-          animate={{ scale: [1, 1.3, 1], opacity: [0.05, 0.12, 0.05] }}
-          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute -bottom-1/4 -right-1/4 w-3/4 h-3/4 bg-[var(--secondary)] rounded-full blur-[160px]"
+          animate={{ scale: [1, 1.3, 1], opacity: [0.1, 0.15, 0.1] }}
+          transition={{ duration: 15, repeat: Infinity, delay: 2 }}
+          className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] bg-purple-600 rounded-full blur-[120px]"
         />
       </div>
 
-      <div className="relative z-10">
+      <div className="relative z-10 container mx-auto px-6">
 
-        {/* Header */}
-        <div className="container mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
+        {/* Header Section */}
+        <div className="text-center mb-20">
+          <motion.span
+            initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.9, ease: "easeOut" }}
-            className="text-center mb-10"
+            className="inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-blue-400 text-xs font-bold tracking-widest uppercase mb-4"
           >
-            <motion.span
-              initial={{ opacity: 0, scale: 0.85 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7 }}
-              className="inline-block px-6 py-2 rounded-full bg-white/60 backdrop-blur-md text-[var(--secondary)] text-sm font-bold tracking-[0.25em] uppercase mb-6 border border-white/70 shadow-md"
-            >
-              About Us
-            </motion.span>
-
-            <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-              {statsData.title ? (
-                <>
-                  <span className="text-[#111111]">{statsData.title.split(' ').slice(0, -1).join(' ')}</span>
-                  <br />
-                  <span className="bg-gradient-to-r from-[var(--secondary)] to-[var(--primary)] bg-clip-text text-transparent">
-                    {statsData.title.split(' ').slice(-1)}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="text-[#111111]">About</span>
-                  <br />
-                  <span className="bg-gradient-to-r from-[var(--secondary)] to-[var(--primary)] bg-clip-text text-transparent">Us</span>
-                </>
-              )}
-            </h2>
-
-            <p className="text-lg text-gray-500 max-w-3xl mx-auto leading-relaxed">
-              {statsData.description}
-            </p>
-          </motion.div>
+            Our Statistics
+          </motion.span>
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-b from-white to-gray-500 bg-clip-text text-black">
+            {statsData.title}
+          </h2>
+          <p className="text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
+            {statsData.description}
+          </p>
         </div>
 
-        {/* Image Stage */}
-        <div className="w-full px-6 lg:px-16 xl:px-24">
-          <div
-            className="relative overflow-hidden rounded-xl"
-            style={{ height: "clamp(220px, 45vh, 480px)" }}
-          >
-            {/* Exiting image fades out behind the strips */}
-            {previous && (
-              <motion.div
-                key={`exit-${prevSlide}`}
-                className="absolute inset-0 flex items-center justify-center"
-                initial={{ opacity: 1 }}
-                animate={{ opacity: 0 }}
-                transition={{ duration: 0.35, ease: "easeOut" }}
-              >
-                <img
-                  src={`${API_BASE_URL}${previous.icon}`}
-                  alt="Previous"
-                  draggable={false}
-                  className="max-w-[90%] max-h-[90%] w-auto h-auto object-contain select-none"
-                  style={{ filter: "drop-shadow(0 20px 60px rgba(0,0,0,0.10))" }}
-                />
-              </motion.div>
-            )}
+        {/* The "Depth" Carousel */}
+        <div className="relative h-[450px] flex items-center justify-center">
+          <div className="relative w-full max-w-6xl flex items-center justify-center">
 
-            {/* Incoming image with strip reveal */}
-            <StripReveal
-              key={revealKey}
-              src={`${API_BASE_URL}${current.icon}`}
-              alt={`Slide ${activeSlide + 1}`}
-            />
+            <AnimatePresence initial={false}>
+              {validStats.map((stat, i) => {
+                let offset = i - activeSlide;
 
-            {/* Slide counter */}
-            <div className="absolute bottom-3 right-4 text-[11px] font-semibold tracking-widest text-[var(--secondary)]/40 select-none z-10">
-              {String(activeSlide + 1).padStart(2, "0")} / {String(validStats.length).padStart(2, "0")}
-            </div>
-          </div>
+                // Infinite loop wrapping logic
+                if (offset > Math.floor(total / 2)) offset -= total;
+                if (offset < -Math.floor(total / 2)) offset += total;
 
-          {/* Navigation */}
-          <div className="flex items-center justify-center gap-6 mt-8">
+                const isActive = offset === 0;
+                const isVisible = Math.abs(offset) <= 1;
 
-            {/* Prev */}
-            <button
-              onClick={() => goToSlide((activeSlide - 1 + validStats.length) % validStats.length)}
-              className="w-9 h-9 rounded-full border border-[var(--secondary)]/20 flex items-center justify-center text-[var(--secondary)] hover:border-[var(--secondary)] hover:bg-[var(--secondary)]/5 transition-all duration-200"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-
-            {/* Progress dots */}
-            <div className="flex items-center gap-3">
-              {validStats.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToSlide(index)}
-                  aria-label={`Go to slide ${index + 1}`}
-                  className="relative flex items-center justify-center"
-                >
+                return (
                   <motion.div
-                    animate={{ width: activeSlide === index ? 36 : 8 }}
-                    transition={{ duration: 0.35, ease: "easeInOut" }}
-                    className="h-[5px] rounded-full bg-[var(--secondary)]/15 overflow-hidden relative"
+                    key={stat._id}
+                    initial={false}
+                    animate={{
+                      x: offset * GAP,
+                      scale: isActive ? 1 : 0.8,
+                      zIndex: isActive ? 40 : 30 - Math.abs(offset),
+                      opacity: isVisible ? (isActive ? 1 : 0.4) : 0,
+                      filter: isActive ? "blur(0px)" : "blur(4px)",
+                    }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 260,
+                      damping: 26
+                    }}
+                    className="absolute cursor-pointer select-none"
+                    style={{ width: CARD_W, height: CARD_H }}
+                    onClick={() => setActiveSlide(i)}
                   >
-                    {/* Animated fill bar inside the active dot */}
-                    {activeSlide === index && (
-                      <motion.div
-                        className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[var(--secondary)] to-[var(--primary)]"
-                        style={{ width: `${progress}%` }}
+                    <div className="relative w-full h-full group">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-[2rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                      <img
+                        src={`${API_BASE_URL}${stat.icon}`}
+                        alt="Stats Graphic"
+                        className="w-full h-full object-cover rounded-[2rem] border border-white/10 shadow-2xl relative z-10"
+                        draggable={false}
                       />
-                    )}
+
+                      {!isActive && (
+                        <div className="absolute inset-0 bg-black/40 z-20 rounded-[2rem] transition-opacity" />
+                      )}
+                    </div>
                   </motion.div>
-                </button>
-              ))}
-            </div>
-
-            {/* Next */}
-            <button
-              onClick={() => goToSlide((activeSlide + 1) % validStats.length)}
-              className="w-9 h-9 rounded-full bg-gradient-to-r from-[var(--secondary)] to-[var(--primary)] flex items-center justify-center text-white shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
-
+                );
+              })}
+            </AnimatePresence>
           </div>
         </div>
+
+        {/* Custom Pagination */}
+        <div className="flex justify-center items-center gap-4 mt-16">
+          {validStats.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className="group flex flex-col items-center"
+            >
+              <div className="h-1 w-16 rounded-full bg-white/10 overflow-hidden relative">
+                <motion.div
+                  className="absolute inset-y-0 left-0 bg-blue-500"
+                  initial={{ width: 0 }}
+                  animate={{
+                    width: activeSlide === index ? `${progress}%` : (index < activeSlide ? "100%" : "0%")
+                  }}
+                />
+              </div>
+              <span className={`text-[10px] mt-2 font-mono transition-colors ${activeSlide === index ? 'text-white' : 'text-gray-600'}`}>
+                0{index + 1}
+              </span>
+            </button>
+          ))}
+        </div>
+
       </div>
     </section>
   );
