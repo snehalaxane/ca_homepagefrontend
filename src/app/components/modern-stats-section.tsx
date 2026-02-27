@@ -16,6 +16,22 @@ interface AboutResponse {
   stats: StatItem[];
 }
 
+// Each slide enters from a different direction — subtle distances for smooth feel
+const entryDirections = [
+  { x: "-45%", y: 0 },        // slide 0: from left
+  { x: 0, y: "45%" },         // slide 1: from bottom
+  { x: "45%", y: 0 },         // slide 2: from right
+  { x: 0, y: "-45%" },        // slide 3: from top
+];
+
+// Exit gently toward the opposite corner
+const exitDirections = [
+  { x: "30%", y: "-30%" },    // slide 0 exits top-right
+  { x: "-30%", y: "-30%" },   // slide 1 exits top-left
+  { x: "-30%", y: "30%" },    // slide 2 exits bottom-left
+  { x: "30%", y: "30%" },     // slide 3 exits bottom-right
+];
+
 export function ModernStatsSection() {
   const [statsData, setStatsData] = useState<AboutResponse | null>(null);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -37,11 +53,11 @@ export function ModernStatsSection() {
   const validStats = statsData?.stats.filter((s) => s.icon?.startsWith("/uploads")) ?? [];
 
   const goToSlide = useCallback((index: number) => {
-    if (isAnimating) return;
+    if (isAnimating || index === activeSlide) return;
     setIsAnimating(true);
     setActiveSlide(index);
     setTimeout(() => setIsAnimating(false), 900);
-  }, [isAnimating]);
+  }, [isAnimating, activeSlide]);
 
   // Auto-advance every 4.5s
   useEffect(() => {
@@ -55,6 +71,8 @@ export function ModernStatsSection() {
   if (!statsData || !statsData.enabled || validStats.length === 0) return null;
 
   const current = validStats[activeSlide];
+  const entry = entryDirections[activeSlide % entryDirections.length];
+  const exit = exitDirections[activeSlide % exitDirections.length];
 
   return (
     <section className="py-16 bg-gradient-to-br from-[#F0F4FF] via-[#FFFFFF] to-[#E8F0FE] relative overflow-hidden">
@@ -118,63 +136,74 @@ export function ModernStatsSection() {
           </motion.div>
         </div>
 
-        {/* Full-Width Image Viewer with Blur-Dissolve Transition */}
+        {/* Full-Width Image Viewer */}
         <div className="w-full px-6 lg:px-16 xl:px-24">
 
-          {/* Image Stage */}
+          {/* Image Stage — clipped so off-screen images stay hidden */}
           <div
-            className="relative overflow-hidden"
+            className="relative overflow-hidden rounded-2xl"
             style={{ height: "clamp(220px, 45vh, 480px)" }}
           >
+            {/* Direction hint labels — subtle corner arrows */}
+            <div className="absolute inset-0 pointer-events-none z-20">
+              <motion.div
+                key={`hint-${activeSlide}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute bottom-4 right-4 text-[10px] font-bold tracking-[0.2em] uppercase text-[var(--secondary)]/30"
+              >
+                {activeSlide + 1} / {validStats.length}
+              </motion.div>
+            </div>
+
             <AnimatePresence mode="wait">
               <motion.div
                 key={current._id}
                 className="absolute inset-0 flex items-center justify-center"
                 initial={{
+                  ...entry,
                   opacity: 0,
-                  scale: 1.06,
-                  filter: "blur(18px)",
+                  scale: 0.94,
                 }}
                 animate={{
+                  x: 0,
+                  y: 0,
                   opacity: 1,
                   scale: 1,
-                  filter: "blur(0px)",
                 }}
                 exit={{
+                  ...exit,
                   opacity: 0,
                   scale: 0.96,
-                  filter: "blur(14px)",
                 }}
                 transition={{
-                  duration: 0.85,
-                  ease: [0.25, 0.46, 0.45, 0.94],
+                  duration: 0.55,
+                  ease: [0.4, 0, 0.2, 1],
                 }}
               >
                 <motion.img
                   src={`${API_BASE_URL}${current.icon}`}
                   alt={`Slide ${activeSlide + 1}`}
                   className="block max-w-[90%] max-h-[90%] w-auto h-auto object-contain select-none"
-                  style={{
-                    filter: "drop-shadow(0 20px 60px rgba(0,0,0,0.13))",
-                  }}
-                  // Subtle Ken Burns drift on the active image
-                  animate={{ scale: [1, 1.03] }}
+                  style={{ filter: "drop-shadow(0 20px 60px rgba(0,0,0,0.13))" }}
+                  // Slow Ken Burns drift while the image is displayed
+                  animate={{ scale: [1, 1.04] }}
                   transition={{ duration: 4.5, ease: "linear" }}
+                />
+
+                {/* Ambient glow that matches the current slide */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1 }}
+                  className="absolute inset-0 bg-gradient-to-br from-[var(--secondary)]/6 via-transparent to-[var(--primary)]/6 blur-[80px] pointer-events-none -z-10"
                 />
               </motion.div>
             </AnimatePresence>
-
-            {/* Ambient glow that shifts with each image */}
-            <motion.div
-              key={`glow-${activeSlide}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1.2 }}
-              className="absolute inset-0 bg-gradient-to-br from-[var(--secondary)]/8 via-transparent to-[var(--primary)]/8 blur-[80px] pointer-events-none -z-10"
-            />
           </div>
 
-          {/* Navigation: dots + counter */}
+          {/* Navigation */}
           <div className="flex items-center justify-center gap-6 mt-10">
 
             {/* Prev */}
@@ -188,7 +217,7 @@ export function ModernStatsSection() {
               </svg>
             </button>
 
-            {/* Animated pill dots */}
+            {/* Pill dots */}
             <div className="flex items-center gap-2">
               {validStats.map((_, index) => (
                 <button
@@ -200,12 +229,12 @@ export function ModernStatsSection() {
                     animate={{
                       width: activeSlide === index ? 32 : 8,
                       opacity: activeSlide === index ? 1 : 0.3,
-                      background: activeSlide === index
-                        ? "linear-gradient(to right, var(--secondary), var(--primary))"
-                        : "var(--secondary)",
                     }}
                     transition={{ duration: 0.4, ease: "easeInOut" }}
-                    className="h-[6px] rounded-full"
+                    className={`h-[6px] rounded-full ${activeSlide === index
+                      ? "bg-gradient-to-r from-[var(--secondary)] to-[var(--primary)]"
+                      : "bg-[var(--secondary)]"
+                      }`}
                   />
                 </button>
               ))}
@@ -223,7 +252,6 @@ export function ModernStatsSection() {
             </button>
 
           </div>
-
         </div>
       </div>
     </section>
