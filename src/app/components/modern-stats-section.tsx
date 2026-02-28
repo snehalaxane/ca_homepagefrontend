@@ -283,7 +283,8 @@ const GAP = 180; // Increased gap for better stacked visibility
 
 interface StatItem {
   _id: string;
-  icon: string;
+  image: string;
+  text?: string; // optional caption for each stat image
 }
 
 interface AboutResponse {
@@ -304,8 +305,17 @@ export function ModernStatsSection() {
     const fetchStats = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/about`);
+        if (!res.ok) throw new Error("Fetch failed");
         const data: AboutResponse = await res.json();
-        setStatsData(data);
+        const enrichedStats = (data.stats || []).map((s: any) => {
+          const imgPath = s.image || s.icon || "";
+          return {
+            ...s,
+            text: s.text || "",
+            image: imgPath ? (imgPath.startsWith("http") ? imgPath : `${API_BASE_URL}${imgPath}`) : ""
+          };
+        });
+        setStatsData({ ...data, stats: enrichedStats });
       } catch (error) {
         console.error("Failed to fetch stats section", error);
       }
@@ -313,7 +323,7 @@ export function ModernStatsSection() {
     fetchStats();
   }, []);
 
-  const validStats = statsData?.stats.filter((s) => s.icon?.startsWith("/uploads")) ?? [];
+  const validStats = Array.isArray(statsData?.stats) ? statsData.stats.filter((s) => s.image) : [];
   const total = validStats.length;
 
   const goToSlide = useCallback((index: number) => {
@@ -341,7 +351,7 @@ export function ModernStatsSection() {
     return () => clearInterval(timer);
   }, [total, activeSlide]);
 
-  if (!statsData || !statsData.enabled || total === 0) return null;
+  if (!statsData || total === 0) return null;
 
   return (
     <section className="py-24 bg-[#ffff] text-white overflow-hidden relative min-h-[800px]">
@@ -367,14 +377,18 @@ export function ModernStatsSection() {
           <motion.span
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
-            className="inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-blue-400 text-xs font-bold tracking-widest uppercase mb-4"
+            className="inline-block px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 text-xs font-bold tracking-widest uppercase mb-4"
           >
             Our Statistics
           </motion.span>
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-b from-white to-gray-500 bg-clip-text text-black">
-            {statsData.title}
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-[#111111]">
+            {statsData.title.split(' ').map((word, i) => (
+              <span key={i} className={/\d/.test(word) ? "bg-gradient-to-r from-[var(--secondary)] to-[var(--primary)] bg-clip-text text-transparent" : ""}>
+                {word}{' '}
+              </span>
+            ))}
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
+          <p className="text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed">
             {statsData.description}
           </p>
         </div>
@@ -418,11 +432,52 @@ export function ModernStatsSection() {
                       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-[2rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
 
                       <img
-                        src={`${API_BASE_URL}${stat.icon}`}
+                        src={stat.image}
                         alt="Stats Graphic"
                         className="w-full h-full object-cover rounded-[2rem] border border-white/10 shadow-2xl relative z-10"
                         draggable={false}
                       />
+                      {/* Premium Letter-by-Letter Animated Caption */}
+                      {stat.text && (
+                        <motion.div
+                          initial="hidden"
+                          animate={isActive ? "visible" : "hidden"}
+                          variants={{
+                            hidden: { opacity: 0 },
+                            visible: {
+                              opacity: 1,
+                              transition: { staggerChildren: 0.04, delayChildren: 0.2 }
+                            }
+                          }}
+                          className="absolute inset-x-0 bottom-16 z-50 flex justify-center px-6 pointer-events-none"
+                        >
+                          <p className="flex flex-nowrap justify-center gap-x-[0.1em] text-white text-xl md:text-2xl font-bold tracking-tight text-center uppercase drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] whitespace-nowrap">
+                            {stat.text.split("").map((char, index) => (
+                              <motion.span
+                                key={index}
+                                variants={{
+                                  hidden: {
+                                    opacity: 0,
+                                    x: index % 2 === 0 ? -40 : 40,
+                                    y: 20,
+                                    rotate: index % 2 === 0 ? -15 : 15
+                                  },
+                                  visible: {
+                                    opacity: 1,
+                                    x: 0,
+                                    y: 0,
+                                    rotate: 0,
+                                    transition: { type: "spring", damping: 12, stiffness: 150 }
+                                  }
+                                }}
+                                className="inline-block origin-center"
+                              >
+                                {char === " " ? "\u00A0" : char}
+                              </motion.span>
+                            ))}
+                          </p>
+                        </motion.div>
+                      )}
 
                       {!isActive && (
                         <div className="absolute inset-0 bg-black/40 z-20 rounded-[2rem] transition-opacity" />
